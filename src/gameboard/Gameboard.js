@@ -38,6 +38,9 @@ const Region = function() {
     if (!(this instanceof Region)) {
         return new Region();
     }
+
+    let region_id = 1
+
     this.squares = []
 }
 
@@ -50,6 +53,15 @@ Region.prototype.generateSquares = function(region) {
 Region.prototype.populateSquares = function() {
     this.squares.forEach(sq => {
         sq.populateSquare()
+        this.addConflicts(sq)
+    })
+}
+
+Region.prototype.addConflicts = function(square) {
+    this.squares.forEach(sq => {
+        if (sq !== square) {
+            sq.addConflict(square.value)
+        }
     })
 }
 
@@ -76,82 +88,60 @@ Square.prototype.populateSquare = function() {
     let value = Math.ceil(Math.random() * 9);
     if (this.conflicts.indexOf(value) === -1) {
         this.value = value
+    } else {
+        switch (1) {
+            case 1:
+                if (this.conflicts.indexOf(1) === -1) {
+                    this.value = 1
+                    break;
+                }
+            case 2:
+                if (this.conflicts.indexOf(2) === -1) {
+                    this.value = 2
+                    break;
+                }
+            case 3:
+                if (this.conflicts.indexOf(3) === -1) {
+                    this.value = 3
+                    break;
+                }
+            case 4:
+                if (this.conflicts.indexOf(4) === -1) {
+                    this.value = 4
+                    break;
+                }
+            case 5:
+                if (this.conflicts.indexOf(5) === -1) {
+                    this.value = 5
+                    break;
+                }
+            case 6:
+                if (this.conflicts.indexOf(6) === -1) {
+                    this.value = 6
+                    break;
+                }
+            case 7:
+                if (this.conflicts.indexOf(7) === -1) {
+                    this.value = 7
+                    break;
+                }
+            case 8:
+                if (this.conflicts.indexOf(8) === -1) {
+                    this.value = 8
+                    break;
+                }
+            case 9:
+                if (this.conflicts.indexOf(9) === -1) {
+                    this.value = 9
+                    break;
+                }
+            default:
+                console.error('should reset here')
+        }
     }
 }
 
 export default Gameboard
-
-//////////////////////////////////////////////////
-// const generateRandomSudokuNumber = (square, square_index, region, region_index) => {
-//     let value = Math.ceil(Math.random() * 9);
-
-//     const setValue = (value) => {
-//         gameboard.regions[region_index].squares[square_index].value = value
-//         updateConflicts(square, square_index, region, region_index)
-//     }
-
-//     if (square.conflicts.indexOf(value) === -1) {
-//         setValue(value)
-//     } else {
-//         switch (1) {
-//             case 1:
-//                 if (square.conflicts.indexOf(1) === -1) {
-//                     setValue(1)
-//                     break;
-//                 }
-//             case 2:
-//                 if (square.conflicts.indexOf(2) === -1) {
-//                     setValue(2)
-//                     break;
-//                 }
-//             case 3:
-//                 if (square.conflicts.indexOf(3) === -1) {
-//                     setValue(3)
-//                     break;
-//                 }
-//             case 4:
-//                 if (square.conflicts.indexOf(4) === -1) {
-//                     setValue(4)
-//                     break;
-//                 }
-//             case 5:
-//                 if (square.conflicts.indexOf(5) === -1) {
-//                     setValue(5)
-//                     break;
-//                 }
-//             case 6:
-//                 if (square.conflicts.indexOf(6) === -1) {
-//                     setValue(6)
-//                     break;
-//                 }
-//             case 7:
-//                 if (square.conflicts.indexOf(7) === -1) {
-//                     setValue(7)
-//                     break;
-//                 }
-//             case 8:
-//                 if (square.conflicts.indexOf(8) === -1) {
-//                     setValue(8)
-//                     break;
-//                 }
-//             case 9:
-//                 if (square.conflicts.indexOf(9) === -1) {
-//                     setValue(9)
-//                     break;
-//                 }
-//             default:
-//                 console.error('should reset here', `region ${region_index}`, `square: ${square_index}`, `conflicts ${square.conflicts}`)
-//         }
-//     }
-// }
-
-// const updateConflicts = (square, square_index, region, region_index) => {
-//     //update region
-//     gameboard.regions[region_index].squares.forEach(sq => {
-//         if (sq !== square) {
-//             sq.conflicts.push(square.value);
-//         }
-//     });
 
 //     //update rest of board
 //     gameboard.regions.forEach(reg => {
