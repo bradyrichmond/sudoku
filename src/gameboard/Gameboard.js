@@ -7,7 +7,7 @@ const Gameboard = function() {
 
 Gameboard.prototype.generate = function() {
     for (let i = 1; i <= 9; i++) {
-        this.addRegion(new Region())
+        this.addRegion(new Region(i))
     }
     this.regions.forEach((region) => {
         region.generateSquares(region)
@@ -15,8 +15,9 @@ Gameboard.prototype.generate = function() {
 }
 
 Gameboard.prototype.populate = function() {
-    this.regions.forEach(region => {
+    this.regions.forEach((region, id) => {
         region.populateSquares()
+        this.updateConflicts(region)
     })
 }
 
@@ -24,29 +25,72 @@ Gameboard.prototype.addRegion = function(region) {
     this.regions.push(region)
 }
 
-Gameboard.prototype.updateConflicts = function(square, squareRegion) {
-    this.regions.forEach(region => {
-        if (region === squareRegion) {
-            region.squares.forEach(sq => {
-                sq.addConflict(square.value)
+Gameboard.prototype.updateConflicts = function(outerRegion) {
+    this.regions.forEach(innerRegion => {
+        if (outerRegion !== innerRegion) {
+            outerRegion.squares.forEach(outerSquare => {
+                innerRegion.squares.forEach(innerSquare => {
+                    if (outerSquare.column === innerSquare.column || outerSquare.row === innerSquare.row) {
+                        innerSquare.addConflict(outerSquare.value)
+                    }
+                })
             })
         }
     })
 }
 
-const Region = function() {
+const Region = function(id) {
     if (!(this instanceof Region)) {
-        return new Region();
+        return new Region()
     }
 
-    let region_id = 1
-
     this.squares = []
+    this.id = id;
 }
 
 Region.prototype.generateSquares = function(region) {
+    let row, column;
+    
     for (let i = 1; i <= 9; i++) {
-        this.addSquare(new Square(region))
+        row = null
+        column = null
+
+        //Default for regions 1-3
+        row = Math.ceil(i / 3);
+
+        if (region.id === 4 || region.id === 5 || region.id === 6) { 
+            row += 3
+        } else if (region.id === 7 || region.id === 8 || region.id === 9) {
+            row += 6
+        }
+
+        switch (i) {
+            case 1:
+            case 4:
+            case 7:
+                column = 1
+                break;
+            case 2:
+            case 5:
+            case 8:
+                column = 2
+                break;
+            case 3:
+            case 6:
+            case 9:
+                column = 3
+                break;
+            default:
+                console.log("shouldn't get here")
+        }
+
+        if (region.id === 2 || region.id === 5 || region.id === 8) {
+            column += 3
+        } else if (region.id === 3 || region.id === 6 || region.id === 9) {
+            column += 6
+        }
+
+        this.addSquare(new Square(region, 0, row, column))
     }
 }
 

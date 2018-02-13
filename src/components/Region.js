@@ -14,7 +14,7 @@ export default class Region extends Component {
 
     componentDidMount() {
         if (this.props.squares) {
-            let newSquares = this.props.squares.map((square, i) => <Square value={square.value} key={i} />)
+            let newSquares = this.props.squares.map((square, i) => <Square value={square.value} key={i} column={square.column} row={square.row} />)
             this.setState({squares: newSquares})
         }
     }
