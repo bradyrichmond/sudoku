@@ -61,6 +61,8 @@ Gameboard.prototype.populate = function() {
                 sq.region = 9
             }
         }
+
+        sq.populateSquare()
     })
 
     this.generateRegions()
