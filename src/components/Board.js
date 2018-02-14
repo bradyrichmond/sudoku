@@ -17,6 +17,7 @@ export class Board extends Component {
         let gameboard = new Gameboard();
         gameboard.generate();
         gameboard.populate();
+        console.log(gameboard)
         let newRegions = gameboard.regions.map((region, i) => <Region squares={region.squares} key={i} />)
         this.setState({ regions: newRegions })
     }

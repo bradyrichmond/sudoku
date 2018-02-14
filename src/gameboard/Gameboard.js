@@ -2,118 +2,75 @@ const Gameboard = function() {
     if (!(this instanceof Gameboard)) {
         return new Gameboard();
     }
+    this.squares = [];
     this.regions = [];
 }
 
 Gameboard.prototype.generate = function() {
-    for (let i = 1; i <= 9; i++) {
-        this.addRegion(new Region(i))
-    }
-    this.regions.forEach((region) => {
-        region.generateSquares(region)
-    })
-}
-
-Gameboard.prototype.populate = function() {
-    this.regions.forEach((region, id) => {
-        region.populateSquares()
-        this.updateConflicts(region)
-    })
-}
-
-Gameboard.prototype.addRegion = function(region) {
-    this.regions.push(region)
-}
-
-Gameboard.prototype.updateConflicts = function(outerRegion) {
-    this.regions.forEach(innerRegion => {
-        if (outerRegion !== innerRegion) {
-            outerRegion.squares.forEach(outerSquare => {
-                innerRegion.squares.forEach(innerSquare => {
-                    if (outerSquare.column === innerSquare.column || outerSquare.row === innerSquare.row) {
-                        innerSquare.addConflict(outerSquare.value)
-                    }
-                })
-            })
-        }
-    })
-}
-
-const Region = function(id) {
-    if (!(this instanceof Region)) {
-        return new Region()
-    }
-
-    this.squares = []
-    this.id = id;
-}
-
-Region.prototype.generateSquares = function(region) {
     let row, column;
-    
-    for (let i = 1; i <= 9; i++) {
+    let validColumns = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    for (let i = 1; i <= 81; i++) {
         row = null
         column = null
 
-        //Default for regions 1-3
-        row = Math.ceil(i / 3);
-
-        if (region.id === 4 || region.id === 5 || region.id === 6) { 
-            row += 3
-        } else if (region.id === 7 || region.id === 8 || region.id === 9) {
-            row += 6
+        row = Math.ceil(i / 9)
+        if (validColumns.indexOf(i) !== -1) {
+            column = i
+        } else {
+            let value = i % 9
+            column = value > 0 ? value : 9
         }
 
-        switch (i) {
-            case 1:
-            case 4:
-            case 7:
-                column = 1
-                break;
-            case 2:
-            case 5:
-            case 8:
-                column = 2
-                break;
-            case 3:
-            case 6:
-            case 9:
-                column = 3
-                break;
-            default:
-                console.log("shouldn't get here")
-        }
-
-        if (region.id === 2 || region.id === 5 || region.id === 8) {
-            column += 3
-        } else if (region.id === 3 || region.id === 6 || region.id === 9) {
-            column += 6
-        }
-
-        this.addSquare(new Square(region, 0, row, column))
+        this.addSquare(new Square(i, row, column))
     }
 }
 
-Region.prototype.populateSquares = function() {
-    this.squares.forEach(sq => {
-        sq.populateSquare()
-        this.addConflicts(sq)
-    })
+Gameboard.prototype.generateRegions = function() {
+    for (let i = 1; i <= 9; i++) {
+        let sqs = this.squares.filter(sq => sq.region === i)
+        this.regions.push(new Region(i, sqs))
+    }
 }
 
-Region.prototype.addConflicts = function(square) {
+Gameboard.prototype.populate = function() {
     this.squares.forEach(sq => {
-        if (sq !== square) {
-            sq.addConflict(square.value)
+        // generate region for each square
+        if (sq.row <= 3) {
+            if(sq.column <= 3) {
+                sq.region = 1
+            } else if (sq.column > 3 & sq.column <= 6) {
+                sq.region = 2
+            } else {
+                sq.region = 3
+            }
+        } else if (sq.row > 3 && sq.row <= 6) {
+            if (sq.column <= 3) {
+                sq.region = 4
+            } else if (sq.column > 3 & sq.column <= 6) {
+                sq.region = 5
+            } else {
+                sq.region = 6
+            }
+        } else {
+            if (sq.column <= 3) {
+                sq.region = 7
+            } else if (sq.column > 3 & sq.column <= 6) {
+                sq.region = 8
+            } else {
+                sq.region = 9
+            }
         }
     })
+
+    this.generateRegions()
 }
 
-Region.prototype.addSquare = function(square) {
+Gameboard.prototype.addSquare = function (square) {
     this.squares.push(square)
 }
 
-const Square = function (region, value, row, column, conflicts) {
+const Square = function (value, row, column, conflicts, region) {
     if (!(this instanceof Square)) {
         return new Square(value, row, column, conflicts);
     }
@@ -121,7 +78,7 @@ const Square = function (region, value, row, column, conflicts) {
     this.row = row
     this.column = column
     this.conflicts = conflicts || []
-    this.region = region
+    this.region = region || 0
 }
 
 Square.prototype.addConflict = function(conflict) {
@@ -181,21 +138,22 @@ Square.prototype.populateSquare = function() {
                 }
             default:
                 console.error('should reset here')
+                return 'reset';
         }
     }
 }
 
 export default Gameboard
 
-//     //update rest of board
-//     gameboard.regions.forEach(reg => {
-//         if (reg !== region) {
-//             reg.squares.forEach(sq => {
-//                 if (sq.column === square.column || sq.row === square.row) {
-//                     sq.conflicts.push(square.value);
-//                 }
-//             })
-//         }
-//     })
-// }
+const Region = function (id, squares) {
+    if (!(this instanceof Region)) {
+        return new Region()
+    }
 
+    this.squares = squares
+    this.id = id;
+}
+
+Region.prototype.addSquare = function (square) {
+    this.squares.push(square)
+}
