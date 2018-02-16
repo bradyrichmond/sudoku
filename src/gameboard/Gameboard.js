@@ -6,7 +6,12 @@ const Gameboard = function() {
     this.regions = [];
 }
 
-Gameboard.prototype.generate = function() {
+Gameboard.prototype.generate = function(reset) {
+
+    if (reset) {
+        this.squares = []
+    }
+
     let row, column;
     let validColumns = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -24,13 +29,19 @@ Gameboard.prototype.generate = function() {
 
         this.addSquare(new Square(i, row, column))
     }
+
+    if (reset) {
+        this.populate()
+    }
 }
 
-Gameboard.prototype.generateRegions = function() {
+Gameboard.prototype.generateGroup = function(groupBy) {
+    let group = []
     for (let i = 1; i <= 9; i++) {
-        let sqs = this.squares.filter(sq => sq.region === i)
-        this.regions.push(new Region(i, sqs))
+        let sqs = this.squares.filter(sq => sq[groupBy] === i)
+        group.push(new Group(i, sqs))
     }
+    return group;
 }
 
 Gameboard.prototype.populate = function() {
@@ -61,20 +72,60 @@ Gameboard.prototype.populate = function() {
                 sq.region = 9
             }
         }
-
-        sq.populateSquare()
     })
 
-    this.generateRegions()
+    this.squares.forEach(sq => {
+        let response = sq.populateSquare()
+        if (response === 'reset'){
+            this.generate(true)
+            return;
+        }
+        this.updateConflicts(sq)
+    })
+
+    this.regions = this.generateGroup("region")
+    this.columns = this.generateGroup("column")
+    this.rows = this.generateGroup("row")
+    console.log("BRADY ", this.regions, this.columns, this.rows)
 }
 
 Gameboard.prototype.addSquare = function (square) {
     this.squares.push(square)
 }
 
+Gameboard.prototype.updateConflicts = function(square) {
+    let matches = { 
+        "region": square.region, 
+        "column": square.column, 
+        "row": square.row
+    }
+
+    let conflictValue = square.value
+
+    let creator = (match) => {
+        return this.squares.filter(filterSquare => filterSquare[match] === matches[match]).forEach(enumSquare => {
+            enumSquare.addConflict(conflictValue)
+        })
+    }
+
+    let changes = { 
+        "regions": [],
+        "columns": [],
+        "rows": []
+    } 
+
+    Object.keys(matches).forEach(match => {
+        changes[`${match}s`] = creator(match)
+    })
+
+    this.regions = Object.assign({}, this.regions, changes.regions)
+    this.columns = Object.assign({}, this.columns, changes.columns)
+    this.rows = Object.assign({}, this.rows, changes.rows)
+}
+
 const Square = function (value, row, column, conflicts, region) {
     if (!(this instanceof Square)) {
-        return new Square(value, row, column, conflicts);
+        return new Square(value, row, column, conflicts, region);
     }
     this.value = value
     this.row = row
@@ -147,15 +198,16 @@ Square.prototype.populateSquare = function() {
 
 export default Gameboard
 
-const Region = function (id, squares) {
-    if (!(this instanceof Region)) {
-        return new Region()
+const Group = function (id, squares) {
+    if (!(this instanceof Group)) {
+        return new Group()
     }
 
     this.squares = squares
     this.id = id;
 }
 
-Region.prototype.addSquare = function (square) {
+
+Group.prototype.addSquare = function (square) {
     this.squares.push(square)
 }
